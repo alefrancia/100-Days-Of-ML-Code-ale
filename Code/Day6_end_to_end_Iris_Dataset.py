@@ -5,22 +5,22 @@
 
 # Python version
 import sys
-print('Python: {}'.format(sys.version))
+# print('Python: {}'.format(sys.version))
 # scipy
 import scipy
-print('scipy: {}'.format(scipy.__version__))
+# print('scipy: {}'.format(scipy.__version__))
 # numpy
 import numpy
-print('numpy: {}'.format(numpy.__version__))
+# print('numpy: {}'.format(numpy.__version__))
 # matplotlib
 import matplotlib
-print('matplotlib: {}'.format(matplotlib.__version__))
+# print('matplotlib: {}'.format(matplotlib.__version__))
 # pandas
 import pandas
-print('pandas: {}'.format(pandas.__version__))
+# print('pandas: {}'.format(pandas.__version__))
 # scikit-learn
 import sklearn
-print('sklearn: {}'.format(sklearn.__version__))
+# print('sklearn: {}'.format(sklearn.__version__))
 
 # Load libraries
 from pandas import read_csv
@@ -44,3 +44,76 @@ url = "datasets/iris.csv"
 names = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'class']
 dataset = read_csv(url, names=names)
 
+# shape
+# print(dataset.shape)
+# shape
+# print(dataset)
+# descriptions
+# print(dataset.describe())
+# class distribution
+# print(dataset.groupby('class').size())
+
+# box and whisker plots
+# dataset.plot(kind='box', subplots=True, layout=(2,2), sharex=False, sharey=False)
+# pyplot.show()
+
+
+# histograms
+# dataset.hist()
+# pyplot.show()
+
+# scatter plot matrix
+# scatter_matrix(dataset)
+#pyplot.show()
+
+
+# Split-out validation dataset
+array = dataset.values
+# print(array[:10])
+# print(array[:10,3])
+# print(array[0])
+#print([1:5,0:4])
+
+X = array[:,0:4] 
+# print(X[:10]) #primeros 10 valores
+y = array[:,4]
+# print(y[:10]) #primeros 10 valores
+X_train, X_validation, Y_train, Y_validation = train_test_split(X, y, test_size=0.20, random_state=1)
+
+# Test Hastness
+
+# Spot Check Algorithms
+models = []
+models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
+models.append(('LDA', LinearDiscriminantAnalysis()))
+models.append(('KNN', KNeighborsClassifier()))
+models.append(('CART', DecisionTreeClassifier()))
+models.append(('NB', GaussianNB()))
+models.append(('SVM', SVC(gamma='auto')))
+# evaluate each model in turn
+results = []
+names = []
+for name, model in models:
+	kfold = StratifiedKFold(n_splits=10, random_state=1, shuffle=True)
+	cv_results = cross_val_score(model, X_train, Y_train, cv=kfold, scoring='accuracy')
+	results.append(cv_results)
+	names.append(name)
+	print('%s: %f (%f)' % (name, cv_results.mean(), cv_results.std()))
+
+# Compare Algorithms
+pyplot.boxplot(results, labels=names)
+pyplot.title('Algorithm Comparison')
+pyplot.show()
+
+
+# Make predictions on validation dataset
+model = SVC(gamma='auto')
+# model = GaussianNB()
+# model = LogisticRegression(solver='liblinear', multi_class='ovr')
+model.fit(X_train, Y_train)
+predictions = model.predict(X_validation)
+
+# Evaluate predictions
+print(accuracy_score(Y_validation, predictions))
+print(confusion_matrix(Y_validation, predictions))
+print(classification_report(Y_validation, predictions))
